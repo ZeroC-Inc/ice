@@ -326,7 +326,6 @@ namespace Slice
     class Type : public virtual SyntaxTreeBase
     {
     public:
-        Type(const UnitPtr& unit);
         [[nodiscard]] virtual bool isClassType() const;
         [[nodiscard]] virtual bool usesClasses() const;
         [[nodiscard]] virtual size_t minWireSize() const = 0;
@@ -549,7 +548,7 @@ namespace Slice
     class Constructed : public virtual Type, public virtual Contained
     {
     public:
-        Constructed(const ContainerPtr& container, const std::string& name);
+        Constructed();
     };
 
     // ----------------------------------------------------------------------
