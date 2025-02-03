@@ -20,78 +20,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Release builds
-          - os: macos-15
-            config: "release"
-            # We want to test C++ and Swift only (in each direction)
-            cross_test_flags: "--all-cross --filter cpp --filter swift"
-          - os: ubuntu-24.04
-            config: "release"
-            cross_test_flags: "--all-cross"
-          - os: ubuntu-24.04-arm
-            config: "release"
-            build_flags: "SKIP=csharp" # Skip C# on ARM as .NET compiler keeps crashing
-            test_flags: "--rfilter=java/Ice/udp --rfilter=csharp" # Remove rfilter once https://github.com/zeroc-ice/ice/issues/3389 is fixed
-          - os: windows-2022
-            config: "release"
-            build_flags: "/p:Platform=x64"
-            test_flags: "--platform=x64"
-          - os: windows-2022
-            config: "cpp-win32-release"
-            working_directory: "cpp"
-            build_flags: "/p:Platform=Win32"
-            msbuild_project: "msbuild/ice.proj"
-            test_flags: "--platform=Win32"
-
-          # Debug builds
-          - os: macos-15
-            config: "debug"
-            build_flags: "OPTIMIZE=no"
-            test_flags: "--swift-config=debug"
-          - os: ubuntu-24.04
-            config: "debug"
-            build_flags: "OPTIMIZE=no"
-          # TODO - figure out how to properly install debug Python
-          - os: windows-2022
-            config: "debug"
-            working_directory: "cpp"
-            build_flags: "/p:Platform=x64 /p:Configuration=Debug"
-            test_flags: "--platform=x64 --config=Debug"
-            msbuild_project: "msbuild/ice.proj"
-
-          # iOS
-          - os: macos-15
-            config: "ios"
-            build_flags: "PLATFORMS='macosx iphonesimulator' CONFIGS='static shared' LANGUAGES='cpp swift'"
-            # TODO swift/Ice/udp doesn't work on CI
-            test_flags: "--languages='cpp,swift' --platform=iphonesimulator --controller-app --rfilter=swift/Ice/udp"
-            build_cpp_and_python: true
-
-          # Static builds
-          - os: ubuntu-24.04
-            config: "static"
-            build_flags: "CONFIGS=static"
-            test_flags: "--config=static --filter=Ice/ --filter=IceDiscovery/"
-            working_directory: "cpp"
-
-          # MATLAB
-          - os: ubuntu-24.04
-            config: "matlab"
-            working_directory: "matlab"
-            build_cpp_and_python: true
-          - os: windows-2022
-            config: "matlab"
-            working_directory: "matlab"
-            build_flags: "/p:Platform=x64"
-            msbuild_project: "msbuild/ice.proj"
-            test_flags: "--platform=x64"
-            build_cpp_and_python: true
 
           # Android
           - os: ubuntu-24.04
             config: "android"
             working_directory: "java"
-            test_flags: "--android --controller-app"
+            test_flags: "--android --controller-app --filter Ice/hold --loop"
             build_cpp_and_python: true
             build_android_controller: true
 

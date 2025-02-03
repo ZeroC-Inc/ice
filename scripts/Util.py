@@ -2765,6 +2765,11 @@ class AndroidProcessController(RemoteProcessController):
 
     def stopControllerApp(self, ident):
         try:
+            run("{} logcat -b crash".format(self.adb()))
+        except Exception:
+            pass
+
+        try:
             run("{} shell pm uninstall com.zeroc.testcontroller".format(self.adb()))
         except Exception:
             pass
