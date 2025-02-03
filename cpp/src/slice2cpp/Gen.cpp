@@ -1046,11 +1046,9 @@ Slice::Gen::validateMetadata(const UnitPtr& u)
                 }
                 return nullopt;
             }
-            else if (
-                dynamic_pointer_cast<Sequence>(p) || dynamic_pointer_cast<Dictionary>(p) ||
-                dynamic_pointer_cast<ClassDecl>(p))
+            else if (dynamic_pointer_cast<Sequence>(p) || dynamic_pointer_cast<Dictionary>(p))
             {
-                return nullopt; // TODO: I see no reason to support 'cpp:type' on class declarations.
+                return nullopt;
             }
             else
             {

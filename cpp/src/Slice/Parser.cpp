@@ -11,11 +11,6 @@
 #include <iterator>
 #include <limits>
 
-// TODO: fix this warning once we no longer support VS2013 and earlier
-#if defined(_MSC_VER)
-#    pragma warning(disable : 4589) // Constructor of abstract class 'Slice::Type' ignores initializer...
-#endif
-
 using namespace std;
 using namespace Slice;
 
@@ -720,8 +715,6 @@ Slice::SyntaxTreeBase::SyntaxTreeBase(UnitPtr unit) : _unit(std::move(unit)) {}
 // Type
 // ----------------------------------------------------------------------
 
-Slice::Type::Type(const UnitPtr& unit) : SyntaxTreeBase(unit) {}
-
 bool
 Slice::Type::isClassType() const
 {
@@ -878,7 +871,7 @@ Slice::Builtin::kindFromString(string_view str)
     return nullopt;
 }
 
-Slice::Builtin::Builtin(const UnitPtr& unit, Kind kind) : SyntaxTreeBase(unit), Type(unit), _kind(kind) {}
+Slice::Builtin::Builtin(const UnitPtr& unit, Kind kind) : SyntaxTreeBase(unit), Type(), _kind(kind) {}
 
 // ----------------------------------------------------------------------
 // Contained
@@ -1035,10 +1028,10 @@ Slice::Contained::parseFormatMetadata() const
         {
             return SlicedFormat;
         }
-        else if (arg != "default") // TODO: Allow "default" to be specified as a format value?
+        else
         {
-            // TODO: How to handle invalid format?
-            return nullopt;
+            // TODO: Allow "default" to be specified as a format value?
+            assert(arg == "default");
         }
     }
     return nullopt;
@@ -1067,8 +1060,7 @@ Slice::Contained::getDeprecationReason() const
 }
 
 Slice::Contained::Contained(const ContainerPtr& container, string name)
-    : SyntaxTreeBase(container->unit()),
-      _container(container),
+    : _container(container),
       _name(std::move(name))
 {
     assert(_unit);
@@ -2376,12 +2368,7 @@ Slice::Module::Module(const ContainerPtr& container, const string& name)
 // Constructed
 // ----------------------------------------------------------------------
 
-Slice::Constructed::Constructed(const ContainerPtr& container, const string& name)
-    : SyntaxTreeBase(container->unit()),
-      Type(container->unit()),
-      Contained(container, name)
-{
-}
+Slice::Constructed::Constructed() {}
 
 // ----------------------------------------------------------------------
 // ClassDecl
@@ -2438,9 +2425,9 @@ Slice::ClassDecl::visit(ParserVisitor* visitor)
 
 Slice::ClassDecl::ClassDecl(const ContainerPtr& container, const string& name)
     : SyntaxTreeBase(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name)
+      Constructed()
 {
 }
 
@@ -2786,9 +2773,9 @@ Slice::InterfaceDecl::checkBasesAreLegal(const string& name, const InterfaceList
 
 Slice::InterfaceDecl::InterfaceDecl(const ContainerPtr& container, const string& name)
     : SyntaxTreeBase(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name)
+      Constructed()
 {
 }
 
@@ -3578,13 +3565,9 @@ Slice::Exception::createDataMember(
     // Check whether any bases have defined a member with the same name already.
     for (const auto& q : allBases())
     {
-        ContainedList contents;
-        DataMemberList dml = q->dataMembers();
-        copy(dml.begin(), dml.end(), back_inserter(contents));
-
-        for (const auto& r : contents)
+        for (const auto& member : q->dataMembers())
         {
-            if (r->name() == name)
+            if (member->name() == name)
             {
                 ostringstream os;
                 os << "exception member '" << name << "' is already defined in a base exception";
@@ -3592,13 +3575,13 @@ Slice::Exception::createDataMember(
                 return nullptr;
             }
 
-            string baseName = IceInternal::toLower(r->name());
+            string baseName = IceInternal::toLower(member->name());
             string newName = IceInternal::toLower(name);
             if (baseName == newName) // TODO use ciCompare
             {
                 ostringstream os;
                 os << "exception member '" << name << "' differs only in capitalization from exception member '"
-                   << r->name() << "', which is defined in a base exception";
+                   << member->name() << "', which is defined in a base exception";
                 _unit->error(os.str());
             }
         }
@@ -3934,9 +3917,9 @@ Slice::Struct::visit(ParserVisitor* visitor)
 Slice::Struct::Struct(const ContainerPtr& container, const string& name)
     : SyntaxTreeBase(container->unit()),
       Container(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name)
+      Constructed()
 {
 }
 
@@ -4000,9 +3983,9 @@ Slice::Sequence::visit(ParserVisitor* visitor)
 
 Slice::Sequence::Sequence(const ContainerPtr& container, const string& name, TypePtr type, MetadataList typeMetadata)
     : SyntaxTreeBase(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name),
+      Constructed(),
       _type(std::move(type)),
       _typeMetadata(std::move(typeMetadata))
 {
@@ -4144,9 +4127,9 @@ Slice::Dictionary::Dictionary(
     TypePtr valueType,
     MetadataList valueMetadata)
     : SyntaxTreeBase(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name),
+      Constructed(),
       _keyType(std::move(keyType)),
       _valueType(std::move(valueType)),
       _keyMetadata(std::move(keyMetadata)),
@@ -4293,9 +4276,9 @@ Slice::Enum::visit(ParserVisitor* visitor)
 Slice::Enum::Enum(const ContainerPtr& container, const string& name)
     : SyntaxTreeBase(container->unit()),
       Container(container->unit()),
-      Type(container->unit()),
+      Type(),
       Contained(container, name),
-      Constructed(container, name),
+      Constructed(),
       _minValue(numeric_limits<int32_t>::max())
 {
 }

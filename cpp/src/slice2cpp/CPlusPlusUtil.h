@@ -58,9 +58,6 @@ namespace Slice
     void
     writeAllocateCode(IceInternal::Output&, const ParameterList&, const OperationPtr&, const std::string&, TypeContext);
 
-    // TODO: remove from header file.
-    void writeMarshalUnmarshalAllInHolder(IceInternal::Output&, const std::string&, const DataMemberList&, bool, bool);
-
     /// Writes the StreamReader specialization for a struct.
     void writeStreamReader(IceInternal::Output&, const StructPtr&, const DataMemberList&);
 

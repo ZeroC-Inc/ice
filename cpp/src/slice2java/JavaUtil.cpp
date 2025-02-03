@@ -26,6 +26,8 @@ using namespace IceInternal;
 
 namespace
 {
+    static const char* builtinNameTable[] = {"Byte", "Bool", "Short", "Int", "Long", "Float", "Double", "String"};
+
     string typeToBufferString(const TypePtr& type)
     {
         static const char* builtinBufferTable[] = {
@@ -725,9 +727,6 @@ Slice::JavaGenerator::writeMarshalUnmarshalCode(
 
     assert(!marshal || mode != OptionalMember); // Only support OptionalMember for un-marshaling
 
-    static const char* builtinTable[] =
-        {"Byte", "Bool", "Short", "Int", "Long", "Float", "Double", "String", "???", "???", "???"};
-
     const BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(type);
     if (builtin)
     {
@@ -742,7 +741,7 @@ Slice::JavaGenerator::writeMarshalUnmarshalCode(
             case Builtin::KindDouble:
             case Builtin::KindString:
             {
-                string s = builtinTable[builtin->kind()];
+                string s = builtinNameTable[builtin->kind()];
                 if (marshal)
                 {
                     if (optionalParam)
@@ -985,7 +984,7 @@ Slice::JavaGenerator::writeMarshalUnmarshalCode(
             BuiltinPtr eltBltin = dynamic_pointer_cast<Builtin>(elemType);
             if (!hasTypeMetadata(seq, metadata) && mapsToJavaBuiltinType(eltBltin))
             {
-                string bs = builtinTable[eltBltin->kind()];
+                string bs = builtinNameTable[eltBltin->kind()];
                 if (marshal)
                 {
                     out << nl << stream << ".write" << bs << "Seq(" << tag << ", " << param << ");";
@@ -1340,18 +1339,16 @@ Slice::JavaGenerator::writeSequenceMarshalUnmarshalCode(
     }
 
     BuiltinPtr builtin = dynamic_pointer_cast<Builtin>(seq->type());
-    static const char* builtinTable[] = {"Byte", "Bool", "Short", "Int", "Long", "Float", "Double", "String"};
-
     static const string bytebuffer = "java:buffer";
     if ((seq->hasMetadata(bytebuffer) || hasMetadata(bytebuffer, metadata)) && !hasMetadata("java:type", metadata))
     {
         if (marshal)
         {
-            out << nl << stream << ".write" << builtinTable[builtin->kind()] << "Buffer(" << param << ");";
+            out << nl << stream << ".write" << builtinNameTable[builtin->kind()] << "Buffer(" << param << ");";
         }
         else
         {
-            out << nl << param << " = " << stream << ".read" << builtinTable[builtin->kind()] << "Buffer();";
+            out << nl << param << " = " << stream << ".read" << builtinNameTable[builtin->kind()] << "Buffer();";
         }
         return;
     }
@@ -1360,11 +1357,11 @@ Slice::JavaGenerator::writeSequenceMarshalUnmarshalCode(
     {
         if (marshal)
         {
-            out << nl << stream << ".write" << builtinTable[builtin->kind()] << "Seq(" << param << ");";
+            out << nl << stream << ".write" << builtinNameTable[builtin->kind()] << "Seq(" << param << ");";
         }
         else
         {
-            out << nl << param << " = " << stream << ".read" << builtinTable[builtin->kind()] << "Seq();";
+            out << nl << param << " = " << stream << ".read" << builtinNameTable[builtin->kind()] << "Seq();";
         }
         return;
     }
@@ -1513,112 +1510,14 @@ Slice::JavaGenerator::writeSequenceMarshalUnmarshalCode(
         BuiltinPtr b = dynamic_pointer_cast<Builtin>(type);
         if (mapsToJavaBuiltinType(b))
         {
-            // TODO This can be written better I'm sure.
-            switch (b->kind())
+            string_view kindName = builtinNameTable[b->kind()];
+            if (marshal)
             {
-                case Builtin::KindByte:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeByteSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readByteSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindBool:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeBoolSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readBoolSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindShort:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeShortSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readShortSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindInt:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeIntSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readIntSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindLong:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeLongSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readLongSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindFloat:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeFloatSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readFloatSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindDouble:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeDoubleSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readDoubleSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindString:
-                {
-                    if (marshal)
-                    {
-                        out << nl << stream << ".writeStringSeq(" << param << ");";
-                    }
-                    else
-                    {
-                        out << nl << param << " = " << stream << ".readStringSeq();";
-                    }
-                    break;
-                }
-                case Builtin::KindValue:
-                case Builtin::KindObject:
-                case Builtin::KindObjectProxy:
-                {
-                    assert(false);
-                    break;
-                }
+                out << nl << stream << ".write" << kindName << "Seq(" << param << ");";
+            }
+            else
+            {
+                out << nl << param << " = " << stream << ".read" << kindName << "Seq();";
             }
         }
         else

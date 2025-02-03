@@ -810,9 +810,8 @@ CodeVisitor::visitDictionary(const DictionaryPtr& p)
     }
     else if (!dynamic_pointer_cast<Enum>(keyType))
     {
-        // TODO: using 'InvalidMetadata' as our warning category for an unsupported key type feels weird.
         // See https://github.com/zeroc-ice/ice/issues/254
-        p->unit()->warning(p->file(), p->line(), InvalidMetadata, "dictionary key type not supported in PHP");
+        p->unit()->warning(p->file(), p->line(), All, "dictionary key type not supported in PHP");
     }
 
     string type = getTypeVar(p);
